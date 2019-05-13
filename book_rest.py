@@ -74,13 +74,18 @@ class BookPosition(Resource):
 		
 		biblio_number = args['biblionumber']
 		
-		cursor.execute("SELECT (\"shelfnumber\", \"shelfposition\") FROM \"BookPosition\" WHERE \"biblionumber\" = {}".format(biblio_number))
+		cursor.execute("SELECT \"shelfnumber\", \"shelfposition\" FROM \"BookPosition\" WHERE \"biblionumber\" = {}".format(biblio_number))
 		
 		fetch = cursor.fetchall()
 		results = []
 		
 		for x in range(0, len(fetch)):
-			results.append(fetch[x])
+			shelfnumber = fetch[x][0]
+			shelfposition = fetch[x][1]
+			entry = {}
+			entry['shelfNumber'] = shelfnumber
+			entry['shelfPosition'] = shelfposition
+			results.append(entry)
 			
 		return results
 #Adds a resource to the API
