@@ -64,7 +64,25 @@ class BookRequester(Resource):
 			abstract = fetch[x][11]
 			results.append(Book(biblionumber,frameworkcode,author,title,unititle,notes,serial,seriestitle,copyrightdate,timestamp,datecreated,abstract).toJson())
 		return results
-
+		
+class BookPosition(Resource):
+	def get(self):
+		parser = reqparse.RequestParser()
+		parser.add_argument('biblionumber', required=True, type=int)
+		#parser.add_argument('author')
+		args = parser.parse_args()
+		
+		biblio_number = args['biblionumber']
+		
+		cursor.execute("SELECT (\"shelfnumber\", \"shelfposition\") FROM \"BookPosition\" WHERE \"biblionumber\" = {}".format(biblio_number))
+		
+		fetch = cursor.fetchall()
+		results = []
+		
+		for x in range(0, len(fetch)):
+			results.append(fetch[x])
+			
+		return results
 #Adds a resource to the API
 api.add_resource(BookRequester, '/book')
 #Runs the API
