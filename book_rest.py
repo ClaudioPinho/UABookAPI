@@ -85,5 +85,6 @@ class BookPosition(Resource):
 		return results
 #Adds a resource to the API
 api.add_resource(BookRequester, '/book')
+api.add_resource(BookPosition, '/bookpos')
 #Runs the API
 app.run(host='0.0.0.0', debug=True)
