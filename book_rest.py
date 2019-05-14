@@ -106,7 +106,7 @@ class BookPosition(Resource):
 			
 			results.append(entry)
 			
-		return json.dump(results)
+		return json.dumps(results)
 #Adds a resource to the API
 api.add_resource(BookRequester, '/book')
 api.add_resource(BookPosition, '/bookpos')
