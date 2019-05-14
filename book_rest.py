@@ -87,7 +87,7 @@ class BookPosition(Resource):
 		results = []
 
 		for x in range(0, len(fetch)):
-		
+
 			shelfnumber = fetch[x][0]
 			shelfposition = fetch[x][1]
 			posX = fetch[x][2]
@@ -99,10 +99,10 @@ class BookPosition(Resource):
 			entry = {}
 			entry['shelfNumber'] = shelfnumber
 			entry['shelfPosition'] = shelfposition
-			entry['epsg3763-X'] = json.dumps(posX)
-			entry['epsg3763-Y'] = json.dumps(posY)
-			entry['longitude'] = json.dumps(long)
-			entry['latitude'] = json.dumps(lat)
+			entry['epsg3763-X'] = float(json.dumps(posX))
+			entry['epsg3763-Y'] = float(json.dumps(posY))
+			entry['longitude'] = float(json.dumps(long))
+			entry['latitude'] = float(json.dumps(lat))
 			entry['imageID'] = imageID
 
 			results.append(entry)
