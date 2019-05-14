@@ -1,8 +1,9 @@
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
+from decimal import Decimal
 from pyproj import Proj, transform
 import psycopg2
-import json
+import simplejson as json
 import collections
 
 #Store the app name
@@ -68,23 +69,23 @@ class BookRequester(Resource):
 			abstract = fetch[x][11]
 			results.append(Book(biblionumber,frameworkcode,author,title,unititle,notes,serial,seriestitle,copyrightdate,timestamp,datecreated,abstract).toJson())
 		return results
-		
+
 class BookPosition(Resource):
 	def get(self):
 		parser = reqparse.RequestParser()
 		parser.add_argument('biblionumber', required=True, type=int)
 		#parser.add_argument('author')
 		args = parser.parse_args()
-		
+
 		biblio_number = args['biblionumber']
-		
+
 		#cursor.execute("SELECT \"shelfnumber\", \"shelfposition\" FROM \"BookPosition\" WHERE \"biblionumber\" = {}".format(biblio_number))
 		cursor.execute(
 		"SELECT \"BookPosition\".\"shelfnumber\", \"BookPosition\".\"shelfposition\", \"BookShelf\".\"posX\", \"BookShelf\".\"posY\", \"BookShelf\".\"imageid\" FROM \"BookPosition\" INNER JOIN \"BookShelf\" ON \"BookShelf\".\"shelfnumber\" = \"BookPosition\".\"shelfnumber\" WHERE \"biblionumber\" = {};".format(biblio_number))
-		
+
 		fetch = cursor.fetchall()
 		results = []
-		
+
 		for x in range(0, len(fetch)):
 		
 			shelfnumber = fetch[x][0]
@@ -92,21 +93,22 @@ class BookPosition(Resource):
 			posX = fetch[x][2]
 			posY = fetch[x][3]
 			imageID = fetch[x][4]
-			
-			lat,long = transform(inProj, outProj, posX, posY)
-			
+
+			long,lat = transform(inProj, outProj, posX, posY)
+
 			entry = {}
 			entry['shelfNumber'] = shelfnumber
 			entry['shelfPosition'] = shelfposition
-			entry['epsg3763-X'] = posX
-			entry['epsg3763-Y'] = posY
-			entry['longitude'] = long
-			entry['latitude'] = lat
+			entry['epsg3763-X'] = json.dumps(posX)
+			entry['epsg3763-Y'] = json.dumps(posY)
+			entry['longitude'] = json.dumps(long)
+			entry['latitude'] = json.dumps(lat)
 			entry['imageID'] = imageID
-			
+
 			results.append(entry)
-			
-		return json.dumps(results)
+
+		return results
+
 #Adds a resource to the API
 api.add_resource(BookRequester, '/book')
 api.add_resource(BookPosition, '/bookpos')
