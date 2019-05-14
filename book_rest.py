@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
+from pyproj import Proj, transform
 import psycopg2
 import json
 import collections
@@ -13,6 +14,9 @@ cursor = conn.cursor()
 
 app = Flask(appName)
 api = Api(app)
+
+inProj = Proj(init='epsg:3763') # PORTUGAL
+outProj = Proj(init='epsg:4326')# LAT/LONG GLOBAL
 
 class Book:
 	def __init__(self, biblio_number, framework_code, author, title, uni_title, notes, serial, series_title, copyright_date, timestamp, date_created, abstract):
@@ -74,17 +78,32 @@ class BookPosition(Resource):
 		
 		biblio_number = args['biblionumber']
 		
-		cursor.execute("SELECT \"shelfnumber\", \"shelfposition\" FROM \"BookPosition\" WHERE \"biblionumber\" = {}".format(biblio_number))
+		#cursor.execute("SELECT \"shelfnumber\", \"shelfposition\" FROM \"BookPosition\" WHERE \"biblionumber\" = {}".format(biblio_number))
+		cursor.execute(
+		"SELECT \"BookPosition\".\"shelfnumber\", \"BookPosition\".\"shelfposition\", \"BookShelf\".\"posX\", \"BookShelf\".\"posY\", \"BookShelf\".\"imageid\" FROM \"BookPosition\" INNER JOIN \"BookShelf\" ON \"BookShelf\".\"shelfnumber\" = \"BookPosition\".\"shelfnumber\" WHERE \"biblionumber\" = {};".format(biblio_number))
 		
 		fetch = cursor.fetchall()
 		results = []
 		
 		for x in range(0, len(fetch)):
+		
 			shelfnumber = fetch[x][0]
 			shelfposition = fetch[x][1]
+			posX = fetch[x][2]
+			posY = fetch[x][3]
+			imageID = fetch[x][4]
+			
+			lat,long = transform(inProj, outProj, posX, posY)
+			
 			entry = {}
 			entry['shelfNumber'] = shelfnumber
 			entry['shelfPosition'] = shelfposition
+			entry['epsg3763-X'] = posX
+			entry['epsg3763-Y'] = posY
+			entry['longitude'] = long
+			entry['latitude'] = lat
+			entry['imageID'] = imageID
+			
 			results.append(entry)
 			
 		return results
